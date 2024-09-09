@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+    spec:
+      containers:
+        - name: dashboard
+          image: ghcr.io/saleor/saleor-dashboard:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "100m"
+            limits:
+              memory: "500Mi"
+              cpu: "200m"
+          
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-service
+spec:
+  selector:
+    app: dashboard
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 80
+  type: LoadBalancer
+

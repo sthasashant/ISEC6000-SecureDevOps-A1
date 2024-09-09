@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailpit
+  namespace: saleor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailpit
+  template:
+    metadata:
+      labels:
+        app: mailpit
+    spec:
+      containers:
+        - name: mailpit
+          image: axllent/mailpit
+          ports:
+            - containerPort: 1025
+            - containerPort: 8025
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailpit-service
+  namespace: saleor
+spec:
+  selector:
+    app: mailpit
+  ports:
+    - name: smtp
+      protocol: TCP
+      port: 1025
+      targetPort: 1025
+    - name: web
+      protocol: TCP
+      port: 8025
+      targetPort: 8025
+  type: LoadBalancer
+

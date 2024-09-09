@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: saleor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/saleor/saleor:3.20
+          command: [ "python3", "manage.py", "migrate", "&&", "python3,", "manage.py", "populatedb", "--createsuperuser"]
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: common-env
+            - configMapRef:
+                name: backend-env
+          env:
+            - name: JAEGER_AGENT_HOST
+              value: jaeger
+            - name: DASHBOARD_URL
+              value: http://34.67.66.121:9000/
+            - name: ALLOWED_HOSTS
+              value: localhost,api
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "75m"
+            limits:
+              memory: "200Mi"
+              cpu: "100m"
+          stdin: true
+          tty: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: saleor
+spec:
+  selector:
+    app: api
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer
+
+

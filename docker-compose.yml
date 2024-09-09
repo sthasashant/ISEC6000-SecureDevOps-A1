@@ -28,6 +28,14 @@ services:
     ports:
       - 9002:80
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 516m
+        reservations:
+          cpus: '0.25'
+          memory: 128m      
 
   db:
     image: library/postgres:15-alpine

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      initContainers:
+        - name: init-db
+          image: postgres:14
+          command: ['sh', '-c', 'chown -R postgres:postgres /var/lib/postgresql/data']
+      containers:
+        - name: db
+          image: 'postgres:14'
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgres-secret
+          resources:
+            limits:
+              cpu: 200m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 500Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: db
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-secret
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: saleor
+  POSTGRES_USER: saleor
+  POSTGRES_PASSWORD: saleor
