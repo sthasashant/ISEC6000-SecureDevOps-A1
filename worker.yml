@@ -16,18 +16,31 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/saleor/saleor:3.20
-          command: [ "celery", "-A", "saleor", "--app=saleor.celeryconf:app", "worker", "--loglevel=info", "-B" ]
+          # command: [ "celery", "-A", "saleor", "--app=saleor.celeryconf:app", "worker", "--loglevel=info", "-B" ]
           envFrom:
             - configMapRef:
                 name: common-env
             - configMapRef:
                 name: backend-env
+          env:
+            - name: CELERY_BROKER_URL
+              value: redis://saleor-redis-service:6379/1
+            - name: DATABASE_URL
+              value: postgres://saleor:saleor@saleor-db-service/saleor
+            - name: DEFAULT_FROM_EMAIL
+              value: noreply@example.com
+            - name: EMAIL_URL
+              value: smtp://mailpit-service:1025
+            - name: SECRET_KEY
+              value: changeme
+            - name: DEFAULT_CHANNEL_SLUG
+              value: default-channel
           resources:
             requests:
-              memory: "100Mi"
-              cpu: "75m"
+              memory: "512Mi"
+              cpu: "100m"
             limits:
-              memory: "200Mi"
+              memory: "512Mi"
               cpu: "100m"
 
 ---
